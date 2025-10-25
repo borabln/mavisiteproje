@@ -1,30 +1,31 @@
-# 🎓 Üniversite Duyuru Sistemi - Veritabanı
+# 🎓 Mavi Site Projesi - Database
 
-Üniversite kampüslerindeki duyuruları, etkinlikleri ve ikinci el ürün satışlarını yönetmek için PostgreSQL veritabanı.
+Üniversite kampüslerindeki duyuruları, proje ilanlarını, kulüp etkinliklerini ve mesajlaşmayı yönetmek için PostgreSQL veritabanı.
 
 ## 📋 Veritabanı Yapısı
 
 ### Ana Tablolar
 
-1. **User** - Kullanıcı yönetimi (öğrenci, öğretmen, admin)
-2. **Category** - Duyuru kategorileri (Akademik, Etkinlik, Kulüp, vs.)
-3. **Proclamation** - Duyurular ve ilanlar
-4. **Liker** - Duyuru beğeni sistemi
-5. **ProclamationComment** - Duyuru yorumları (iç içe yorum desteği)
-6. **Product** - İkinci el ürün satış sistemi
-7. **ProductComment** - Ürün yorumları ve fiyat teklifleri
-8. **Message** - Kullanıcılar arası mesajlaşma
+1. **Role** - Kullanıcı rolleri (student, teacher, admin, moderator, club_president)
+2. **User** - Kullanıcı yönetimi
+3. **UserRole** - User-Role many-to-many ilişkisi
+4. **Category** - Duyuru kategorileri (Akademik, Etkinlik, Kulüp, Spor, Kariyer, Sosyal, Genel)
+5. **GeneralAnnouncement** - Ana duyuru tablosu (inheritance parent)
+6. **ProjectAnnouncement** - Proje duyuruları (inheritance child)
+7. **ClubAnnouncement** - Kulüp duyuruları (inheritance child)
+8. **Image** - Duyuru resimleri (multiple images per announcement)
+9. **Comment** - Yorumlar (nested/iç içe yorum desteği)
+10. **Like** - Beğeni sistemi
+11. **Message** - Kullanıcılar arası mesajlaşma
 
 ### Özellikler
 
-✅ **Kullanıcı Rolleri**: student, teacher, admin, moderator  
-✅ **Kategori Sistemi**: Renkli ve ikonlu kategoriler  
-✅ **Beğeni Sistemi**: Duyuruları beğenme  
+✅ **Kullanıcı Rolleri**: Ayrı tablo, many-to-many ilişki  
+✅ **Inheritance Yapısı**: GeneralAnnouncement → ProjectAnnouncement/ClubAnnouncement  
+✅ **Multiple Images**: Her duyuruya birden fazla resim  
 ✅ **İç İçe Yorumlar**: Yorumlara cevap verme  
 ✅ **Mesajlaşma**: Kullanıcılar arası direkt mesaj  
-✅ **Ürün Satış**: İkinci el ürün pazarı  
-✅ **Fiyat Teklifi**: Ürünlere yorum ile teklif verme  
-✅ **View'lar**: Hazır istatistik sorguları
+✅ **View'lar**: API için hazır sorgular  
 
 ## 🚀 Kurulum
 
@@ -33,24 +34,20 @@
 
 ### Adımlar
 
-1. **Bu dosyaları bir klasöre koyun:**
-   - `docker-compose.yml`
-   - `init.sql`
-   - `README.md`
+1. **Repository'yi klonlayın:**
+   ```bash
+   git clone https://github.com/borabln/mavisiteproje.git
+   cd mavisiteproje
+   ```
 
 2. **Docker Desktop'ı başlatın**
 
-3. **Terminali/Komut istemini açın ve klasöre gidin:**
-   ```bash
-   cd masaustu/proje-klasoru
-   ```
-
-4. **Docker container'ları başlatın:**
+3. **Container'ları başlatın:**
    ```bash
    docker-compose up -d
    ```
 
-5. **Kurulumu kontrol edin:**
+4. **Kurulumu kontrol edin:**
    ```bash
    docker ps
    ```
@@ -61,11 +58,21 @@
 ### Backend için PostgreSQL Bağlantısı
 
 ```
-Host: localhost
+Host: localhost (local development)
 Port: 5432
-Database: university_announcements
-Username: universite_admin
-Password: GuvenliSifre2025!
+Database: mavisiteproje
+Username: borabln
+Password: 20333039362aA_
+```
+
+### docker-compose içinde (Backend container'ından):
+
+```
+Host: database (veya postgres)
+Port: 5432
+Database: mavisiteproje
+Username: borabln
+Password: 20333039362aA_
 ```
 
 ### Connection String Örnekleri
@@ -75,112 +82,157 @@ Password: GuvenliSifre2025!
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  host: 'localhost',
-  port: 5432,
-  database: 'university_announcements',
-  user: 'postgres',
-  password: 'universite123'
+  host: process.env.DB_HOST || 'localhost',
+  port: process.env.DB_PORT || 5432,
+  database: process.env.DB_NAME || 'mavisiteproje',
+  user: process.env.DB_USER || 'borabln',
+  password: process.env.DB_PASSWORD
 });
 ```
 
 **Python (psycopg2):**
 ```python
 import psycopg2
+import os
 
 conn = psycopg2.connect(
-    host="localhost",
-    port=5432,
-    database="university_announcements",
-    user="postgres",
-    password="universite123"
+    host=os.getenv('DB_HOST', 'localhost'),
+    port=os.getenv('DB_PORT', '5432'),
+    database=os.getenv('DB_NAME', 'mavisiteproje'),
+    user=os.getenv('DB_USER', 'borabln'),
+    password=os.getenv('DB_PASSWORD')
 )
-```
-
-**Java (JDBC):**
-```java
-String url = "jdbc:postgresql://localhost:5432/university_announcements";
-String user = "postgres";
-String password = "universite123";
-
-Connection conn = DriverManager.getConnection(url, user, password);
 ```
 
 ## 🎨 pgAdmin Web Arayüzü
 
 ### Erişim
-Tarayıcıdan şu adrese gidin: **http://localhost:5050**
+Tarayıcıdan: **http://localhost:5050**
 
 ### Giriş Bilgileri
-- **Email:** admin@universite.com
-- **Password:** admin123
+- **Email:** bulunbora@gmail.com
+- **Password:** 20333039362aA_
 
 ### Sunucu Ekleme
 
 1. Sol tarafta "Servers" üzerine sağ tıklayın
 2. **Register** → **Server**
 3. **General** sekmesi:
-   - Name: `Universite DB`
+   - Name: `Mavi Site DB`
 4. **Connection** sekmesi:
    - Host name/address: `postgres` (dikkat: localhost değil!)
    - Port: `5432`
-   - Maintenance database: `university_announcements`
-   - Username: `postgres`
-   - Password: `universite123`
+   - Maintenance database: `mavisiteproje`
+   - Username: `borabln`
+   - Password: `20333039362aA_`
 5. **Save** butonuna tıklayın
 
 ### Tabloları Görüntüleme
-Servers → Universite DB → Databases → university_announcements → Schemas → public → Tables
+Servers → Mavi Site DB → Databases → mavisiteproje → Schemas → public → Tables
+
+## 📊 Veritabanı Şeması Detayları
+
+### Inheritance Yapısı
+
+```
+GeneralAnnouncement (parent)
+├── ProjectAnnouncement (child) - Proje duyuruları için ek alanlar
+└── ClubAnnouncement (child) - Kulüp duyuruları için ek alanlar
+```
+
+**GeneralAnnouncement** tüm duyuruları tutar, `announcement_type` ile ayırt edilir:
+- `general` - Genel duyurular
+- `project` - Proje duyuruları (ProjectAnnouncement'ta detaylar)
+- `club` - Kulüp duyuruları (ClubAnnouncement'ta detaylar)
+
+### Hazır View'lar (API için)
+
+1. **announcement_details** - Tüm duyuruları beğeni/yorum sayıları ve resimlerle
+2. **project_announcement_details** - Proje duyuruları detaylı
+3. **club_announcement_details** - Kulüp duyuruları detaylı
+4. **user_with_roles** - Kullanıcılar rolleriyle
+5. **user_statistics** - Kullanıcı istatistikleri
 
 ## 📊 Örnek Sorgular
 
 ### En Çok Beğenilen Duyurular
 ```sql
-SELECT * FROM proclamation_with_likes 
+SELECT 
+    announcement_id,
+    title,
+    announcement_type,
+    author_name,
+    like_count,
+    comment_count
+FROM announcement_details 
 ORDER BY like_count DESC 
 LIMIT 10;
 ```
 
-### Kullanıcı İstatistikleri
+### Proje Duyuruları
 ```sql
-SELECT * FROM user_statistics 
-ORDER BY proclamation_count DESC;
+SELECT 
+    title,
+    project_name,
+    project_status,
+    team_size,
+    required_skills,
+    like_count
+FROM project_announcement_details
+WHERE project_status = 'open'
+ORDER BY date_posted DESC;
+```
+
+### Kulüp Etkinlikleri
+```sql
+SELECT 
+    title,
+    club_name,
+    meeting_date,
+    meeting_location,
+    event_type,
+    max_participants
+FROM club_announcement_details
+WHERE meeting_date > NOW()
+ORDER BY meeting_date ASC;
+```
+
+### Kullanıcı Rolleri
+```sql
+SELECT 
+    full_name,
+    email,
+    roles
+FROM user_with_roles
+WHERE 'admin' = ANY(roles);
 ```
 
 ### Son 7 Günün Duyuruları
 ```sql
 SELECT 
-    p.title,
+    ga.title,
+    ga.announcement_type,
     c.category_name,
     u.name || ' ' || u.surname AS author,
-    p.date_posted
-FROM "Proclamation" p
-JOIN "User" u ON p.user_id = u.user_id
-JOIN "Category" c ON p.category_id = c.category_id
-WHERE p.date_posted >= NOW() - INTERVAL '7 days'
-ORDER BY p.date_posted DESC;
-```
-
-### Kategorilere Göre Duyuru Sayısı
-```sql
-SELECT 
-    c.category_name,
-    COUNT(p.proclamation_id) AS announcement_count
-FROM "Category" c
-LEFT JOIN "Proclamation" p ON c.category_id = p.category_id
-GROUP BY c.category_id
-ORDER BY announcement_count DESC;
+    ga.date_posted
+FROM "GeneralAnnouncement" ga
+JOIN "User" u ON ga.user_id = u.user_id
+JOIN "Category" c ON ga.category_id = c.category_id
+WHERE ga.date_posted >= NOW() - INTERVAL '7 days'
+ORDER BY ga.date_posted DESC;
 ```
 
 ## 👥 Test Kullanıcıları
 
-| Email | Şifre | Role |
-|-------|-------|------|
-| admin@universite.com | password | admin |
-| ahmet@ogrenci.com | password | student |
-| ayse@ogrenci.com | password | student |
-| mehmet@ogretmen.com | password | teacher |
+| Email | Şifre | Roller |
+|-------|-------|--------|
+| admin@mavisiteproje.com | password123 | admin |
+| ahmet@ogrenci.edu.tr | password123 | student |
+| ayse@ogrenci.edu.tr | password123 | student |
+| mehmet@akademik.edu.tr | password123 | teacher |
+| zeynep@ogrenci.edu.tr | password123 | student, club_president |
 
-*Not: Şifreler bcrypt ile hashlenmiştir ($2a$10$...). Test için "password" şifresini kullanabilirsiniz.*
+*Not: Şifreler bcrypt ile hashlenmiştir ($2a$10$...). Backend'de bcrypt.compare() kullanın.*
 
 ## 🛠️ Yararlı Komutlar
 
@@ -197,6 +249,9 @@ docker-compose restart
 # Logları görüntüle
 docker-compose logs -f
 
+# Sadece database logları
+docker-compose logs -f postgres
+
 # Veritabanını sıfırla (DİKKAT: Tüm veriler silinir!)
 docker-compose down -v
 docker-compose up -d
@@ -205,7 +260,13 @@ docker-compose up -d
 docker ps
 
 # PostgreSQL container'ına bağlan
-docker exec -it university_postgres psql -U postgres -d university_announcements
+docker exec -it university_postgres psql -U borabln -d mavisiteproje
+
+# Backup al
+docker exec university_postgres pg_dump -U borabln mavisiteproje > backup.sql
+
+# Backup'tan geri yükle
+cat backup.sql | docker exec -i university_postgres psql -U borabln -d mavisiteproje
 ```
 
 ## 🔧 Sorun Giderme
@@ -214,7 +275,7 @@ docker exec -it university_postgres psql -U postgres -d university_announcements
 Bilgisayarınızda zaten PostgreSQL yüklüyse, `docker-compose.yml` dosyasında port numarasını değiştirin:
 ```yaml
 ports:
-  - "5433:5432"  # 5433 yerine başka bir port kullanın
+  - "5433:5432"  # Sol tarafı değiştir
 ```
 
 ### Container başlamıyor
@@ -230,48 +291,69 @@ docker-compose up -d
 ### pgAdmin'e bağlanamıyorum
 - Host olarak `localhost` değil `postgres` yazın
 - Container'ların çalıştığından emin olun: `docker ps`
-- Birkaç saniye bekleyin, container'lar başlatılırken zaman alabilir
+- Şifreleri doğru girdiğinizden emin olun
 
-## 📱 Mobil/Web Uygulama İçin API Endpointleri Önerileri
+## 📱 API Endpoint Önerileri
 
-Projenizi geliştirirken bu endpointleri oluşturabilirsiniz:
+Backend geliştirirken bu endpointleri oluşturabilirsiniz:
 
-### Duyurular
-- `GET /api/proclamations` - Tüm duyuruları listele
-- `GET /api/proclamations/:id` - Tek duyuru detayı
-- `POST /api/proclamations` - Yeni duyuru oluştur
-- `PUT /api/proclamations/:id` - Duyuru güncelle
-- `DELETE /api/proclamations/:id` - Duyuru sil
-- `POST /api/proclamations/:id/like` - Duyuru beğen
-- `POST /api/proclamations/:id/comments` - Yorum ekle
+### Authentication
+- `POST /api/auth/register` - Kayıt ol
+- `POST /api/auth/login` - Giriş yap
+- `POST /api/auth/logout` - Çıkış yap
+- `GET /api/auth/me` - Mevcut kullanıcı bilgisi
+
+### Duyurular (General)
+- `GET /api/announcements` - Tüm duyuruları listele (pagination, filter)
+- `GET /api/announcements/:id` - Tek duyuru detayı
+- `POST /api/announcements` - Yeni duyuru oluştur
+- `PUT /api/announcements/:id` - Duyuru güncelle
+- `DELETE /api/announcements/:id` - Duyuru sil
+- `POST /api/announcements/:id/like` - Beğen/beğeniyi kaldır
+- `GET /api/announcements/:id/comments` - Yorumları getir
+- `POST /api/announcements/:id/comments` - Yorum ekle
+
+### Proje Duyuruları
+- `GET /api/projects` - Tüm proje duyuruları
+- `GET /api/projects/:id` - Proje detayı
+- `POST /api/projects` - Yeni proje duyurusu
+- `PUT /api/projects/:id` - Proje güncelle
+
+### Kulüp Duyuruları
+- `GET /api/clubs` - Tüm kulüp duyuruları
+- `GET /api/clubs/:id` - Kulüp etkinliği detayı
+- `POST /api/clubs` - Yeni kulüp duyurusu
+- `PUT /api/clubs/:id` - Kulüp duyurusu güncelle
 
 ### Kategoriler
 - `GET /api/categories` - Tüm kategoriler
 
 ### Kullanıcılar
-- `POST /api/auth/register` - Kayıt ol
-- `POST /api/auth/login` - Giriş yap
 - `GET /api/users/:id` - Kullanıcı profili
-
-### Ürünler
-- `GET /api/products` - Tüm ürünler
-- `POST /api/products` - Yeni ürün ekle
-- `POST /api/products/:id/offer` - Fiyat teklifi yap
+- `PUT /api/users/:id` - Profil güncelle
+- `GET /api/users/:id/announcements` - Kullanıcının duyuruları
+- `GET /api/users/:id/statistics` - Kullanıcı istatistikleri
 
 ### Mesajlar
-- `GET /api/messages` - Mesajlarım
+- `GET /api/messages` - Mesaj listesi
+- `GET /api/messages/conversations/:userId` - Bir kullanıcıyla konuşma
 - `POST /api/messages` - Mesaj gönder
-- `PUT /api/messages/:id/read` - Mesajı okundu olarak işaretle
+- `PUT /api/messages/:id/read` - Okundu işaretle
 
-## 📞 Destek
+### Resimler
+- `POST /api/images/upload` - Resim yükle
+- `DELETE /api/images/:id` - Resim sil
 
-Sorunlarınız için:
-1. GitHub Issues kullanın
-2. Ekip içi Slack/Discord kanalına yazın
-3. README.md dosyasını güncel tutun
+## 🐳 Docker Hub
 
+Database image:
+```bash
+docker pull borablun/mavisiteproje-db:latest
+# veya
+docker pull borablun/mavisiteproje-db:v2.0
+```
 ---
 
-**Hazırlayan:** Proje Ekibi  
-**Tarih:** Ekim 2025  
-**Versiyon:** 1.0
+**Geliştirici:** Bora (@borabln)  
+**Tarih:** 26 Ekim 2025  
+**Versiyon:** 2.0
